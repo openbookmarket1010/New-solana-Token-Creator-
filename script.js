@@ -1,56 +1,25 @@
-// Define the token's symbol and name
-const symbol = 'MYTOKEN';
-const name = 'My Token';
-// Define the decimal places
-const decimalPlaces = 8;
-// Define the total supply
-const totalSupply = 100000000;
-// Define the initial balance of the token contract
-const initialBalance = totalSupply * Math.pow(10, decimalPlaces);
-// Define the token contract's public key
-const tokenKey = 'TokenPublicKey';
-// Define the token's program ID
-const programId = 'TokenProgramId';
+// server.js
 
-let wallet;
+const express = require('express');
+const bodyParser = require('body-parser');
+const { createToken } = require('./createToken'); // Assuming your createToken function is in a file called createToken.js
 
-// Function to initialize the token contract
-async function initializeToken() {
-    console.log('Token creation initiated...');
-    // Your token creation code here
-    
-}
+const app = express();
+app.use(bodyParser.json());
 
-// Function to connect the wallet
-async function connectWallet() {
-    console.log('Connecting wallet...');
-    try {
-        // Assuming wallet connection logic here
-        wallet = true; // Simulate successful wallet connection
-        console.log('Wallet connected successfully.');
-        document.getElementById('status').textContent = 'Connected to Wallet';
-        document.getElementById('createTokenButton').disabled = false;
-    } catch (error) {
-        console.error('Error connecting to wallet:', error);
-        document.getElementById('status').textContent = 'Error connecting to wallet. Please try again.';
-    }
-}
+// Endpoint to handle token creation request
+app.post('/createToken', async (req, res) => {
+  const { tokenInfo, revokeMint, revokeFreeze } = req.body; // Assuming the request body contains tokenInfo, revokeMint, and revokeFreeze fields
+  try {
+    const tokenAddress = await createToken(tokenInfo, revokeMint, revokeFreeze);
+    res.status(200).json({ success: true, tokenAddress });
+  } catch (error) {
+    console.error('Error creating token:', error);
+    res.status(500).json({ success: false, error: 'Token creation failed' });
+  }
+});
 
-// Add event listener to connect wallet button
-document.getElementById('connectWalletButton').addEventListener('click', connectWallet);
-
-// Add event listener to trigger token creation on button click
-document.getElementById('createTokenButton').addEventListener('click', async () => {
-    if (wallet) {
-        try {
-            await initializeToken();
-            document.getElementById('status').textContent = 'Token contract created successfully.';
-        } catch (error) {
-            console.error('Error creating token contract:', error);
-            document.getElementById('status').textContent = 'Error creating token contract. See console for details.';
-        }
-    } else {
-        console.error('Wallet not connected.');
-        document.getElementById('status').textContent = 'Please connect your wallet first.';
-    }
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
