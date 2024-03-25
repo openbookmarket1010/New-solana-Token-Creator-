@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Token</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/wallet-adapter@2.0.1/dist/index.js"></script>
 </head>
 <body>
   <h1>Create Token</h1>
@@ -22,15 +23,13 @@
     <input type="checkbox" id="revokeMint" name="revokeMint"><br><br>
     <label for="revokeFreeze">Revoke Freeze Authority:</label>
     <input type="checkbox" id="revokeFreeze" name="revokeFreeze"><br><br>
-    <button type="submit">Create Token</button>
+    <button type="button" id="createTokenBtn">Create Token</button>
   </form>
 
   <div id="result"></div>
 
   <script>
-    document.getElementById('tokenForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
-
+    async function createToken() {
       const tokenInfo = {
         tokenName: document.getElementById('tokenName').value,
         symbol: document.getElementById('symbol').value,
@@ -54,6 +53,20 @@
         document.getElementById('result').innerText = `Token created successfully. Address: ${data.tokenAddress}`;
       } else {
         document.getElementById('result').innerText = 'Token creation failed. Please try again later.';
+      }
+    }
+
+    document.getElementById('createTokenBtn').addEventListener('click', async () => {
+      const provider = new solanaWeb3.Provider();
+
+      try {
+        await provider.connect();
+        console.log('Connected to Phantom wallet:', provider.publicKey.toString());
+
+        await createToken(); // Call the createToken function after connecting to Phantom wallet
+      } catch (error) {
+        console.error('Error connecting to Phantom wallet:', error);
+        alert('Error connecting to Phantom wallet. Please make sure Phantom is installed and unlocked.');
       }
     });
   </script>
