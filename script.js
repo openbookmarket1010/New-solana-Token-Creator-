@@ -1,13 +1,5 @@
 // Import the required modules
 const solana = require('@solana/web3.js');
-const {
-  Nonce,
-  Account,
-  SystemProgram,
-  Client,
-  UnsignedTransaction,
-  SystemInstruction,
-} = solana;
 
 // Define the token's symbol and name
 const symbol = 'MYTOKEN';
@@ -27,14 +19,15 @@ let client;
 
 // Function to initialize the token contract
 async function initializeToken() {
+  const connection = new solana.Connection(solana.clusterApiUrl('devnet'));
   const transaction = new solana.Transaction();  
 
   // Add the required instructions to the transaction
   transaction.add(
-    SystemProgram.createAccount({
-      fromPubkey: client.provider.wallet.publicKey,
+    solana.SystemProgram.createAccount({
+      fromPubkey: client.publicKey,
       newAccountPubkey: tokenKey,
-      lamports: await client.provider.connection.getMinimumBalanceForRentExemption(0),
+      lamports: await connection.getMinimumBalanceForRentExemption(0),
       space: 165, // Adjust the space as per token account size
       programId,
     }),
@@ -42,21 +35,26 @@ async function initializeToken() {
       programId, // Token program ID
       tokenKey, // New token account
       decimalPlaces, // Number of decimals
-      client.provider.wallet.publicKey, // Owner
+      client.publicKey, // Owner
       [] // Initializers
     )
   );
 
   // Sign and submit the transaction
-  const signature = await client.provider.send(transaction, [client.provider.wallet]);
-  await client.provider.connection.confirmTransaction(signature, 'processed');
+  const signature = await solana.sendAndConfirmTransaction(
+    connection,
+    transaction,
+    [client]
+  );
+  
+  console.log('Token contract created:', signature);
   return signature;
 }
 
 // Function to connect the wallet
 async function connectWallet() {
   try {
-    client = new Client(new solana.Cluster('https://testnet.solana.com'));
+    client = new solana.Wallet('https://www.sollet.io');
     await client.connect();
     document.getElementById('status').textContent = 'Connected to Wallet';
     document.getElementById('createTokenButton').disabled = false;
